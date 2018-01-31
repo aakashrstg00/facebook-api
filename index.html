@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Aakash App</title>
+    <style>
+        #profile, #logoutBtn, #feed {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="#" id="logoutBtn"><button onclick="logout()">Logout</button></a>
+    <fb:login-button id="fb-btn" scope="public_profile,email,user_birthday,user_location,user_posts" onlogin="checkLoginState();"></fb:login-button>
+    <div class="container">
+        <div id="loginText">Log in to view profile.</div>
+        <div id="profile"></div>
+        <div id="feed"></div>
+    </div>
+    <script>
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: '116996872447358',
+                autoLogAppEvents: true,
+                xfbml: true,
+                version: 'v2.11'
+            });
+            FB.getLoginStatus(function (response) {
+                statusChangeCallback(response);
+            });
+        };
+
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {
+                return;
+            }
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function statusChangeCallback(response) {
+            if (response.status === 'connected') {
+                setElements(true);
+                console.log('Logged In and Authenticated!');
+                testAPI();
+            } else {
+                setElements(false);
+                console.log('Not Authenticated!');
+            }
+        }
+
+        function checkLoginState() {
+            FB.getLoginStatus(function (response) {
+                statusChangeCallback(response);
+            });
+        }
+
+        function setElements(isLoggedIn){
+            if(isLoggedIn){
+                document.getElementById('profile').style.display='block';
+                document.getElementById('feed').style.display='block';
+                document.getElementById('logoutBtn').style.display='block';
+                document.getElementById('fb-btn').style.display='none';
+                document.getElementById('loginText').style.display='none';
+            }
+            else{
+                document.getElementById('profile').style.display='none';
+                document.getElementById('feed   ').style.display='none';
+                document.getElementById('logoutBtn').style.display='none';
+                document.getElementById('fb-btn').style.display='block';
+                document.getElementById('loginText').style.display='block';
+            }
+        }
+
+        function logout(){
+            FB.logout(function(response){
+                setElements(false);
+            });
+        }
+
+        function testAPI(){
+            FB.api('/me?fields=name,email,birthday,location',function(response){
+                if(response && !response.error){
+                    buildProfile(response);
+                }
+            });
+            FB.api('/me/feed',function(response){
+                if(response && !response.error){
+                    buildFeed(response);
+                }
+            });
+        }
+
+        function buildProfile(user){
+            let profile = `<h3>${user.name}</h3>
+            <ul>
+                <li> User ID : ${user.id}
+                </li>
+                <li> Email : ${user.email}
+                </li>
+                <li> Birthday : ${user.birthday}
+                </li>
+                <li> Location : ${user.location.name}
+                </li>
+            </ul>`;
+            document.getElementById('profile').innerHTML=profile;
+        }
+
+        function buildFeed(feed){
+            let output = `<h3>Posts</h3>`;
+            for(let i=0;i<10;i++){
+                if(feed.data[i].message){
+                    output+=`<li>${feed.data[i].message}</li>`;
+                }
+            }
+            document.getElementById('feed').innerHTML=output;
+        }
+    </script>
+</body>
+
+</html>
